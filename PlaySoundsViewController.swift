@@ -31,21 +31,31 @@ class PlaySoundsViewController: UIViewController {
     }
     
     @IBAction func playSlow(sender: UIButton) {
-        audioPlayer.stop()
-        audioEngine.stop()
-        audioEngine.reset()
-        audioPlayer.rate = 0.5
-        audioPlayer.currentTime = 0.0
-        audioPlayer.play()
+        playAudioWithVariableRate(0.5)
     }
     
     @IBAction func playFast(sender: UIButton) {
+        playAudioWithVariableRate(2.0)
+    }
+    
+    func playAudioWithVariableRate(rate: Float){
         audioPlayer.stop()
         audioEngine.stop()
         audioEngine.reset()
-        audioPlayer.rate = 2
-        audioPlayer.currentTime = 0.0
-        audioPlayer.play()
+        
+        var audioPlayerNode = AVAudioPlayerNode()
+        audioEngine.attachNode(audioPlayerNode)
+        var changeRate = AVAudioUnitTimePitch()
+        changeRate.rate = rate
+        audioEngine.attachNode(changeRate)
+        
+        audioEngine.connect(audioPlayerNode, to: changeRate, format: nil)
+        audioEngine.connect(changeRate, to: audioEngine.outputNode, format: nil)
+        
+        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: nil)
+        audioEngine.startAndReturnError(nil)
+        
+        audioPlayerNode.play()
     }
     
     @IBAction func playChipmunk(sender: UIButton) {
